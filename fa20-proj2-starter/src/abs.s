@@ -10,10 +10,15 @@
 # =================================================================
 abs:
     # Prologue
+    andi t0, a0, -1
 
-    # return 0
-    mv a0, zero
+    # branch if positive
+    bge a0, zero, done
+    # invert a if negative
+    sub a0, zero, a0
 
     # Epilogue
-
     ret
+
+done: 
+    ret 

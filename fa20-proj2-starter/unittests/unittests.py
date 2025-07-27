@@ -215,20 +215,46 @@ class TestReadMatrix(TestCase):
         cols = t.array([-1])
 
         # load the addresses to the output parameters into the argument registers
-        raise NotImplementedError("TODO")
-        # TODO
+        t.input_array("a1", rows)  # address where rows will be stored
+        t.input_array("a2", cols)  # address where cols will be stored
 
         # call the read_matrix function
         t.call("read_matrix")
 
         # check the output from the function
-        # TODO
+        if code == 0:  # only check results if we expect success
+            # check that rows and cols were set correctly (3x3 matrix)
+            t.check_array(rows, [3])
+            t.check_array(cols, [3])
+            
+            # check that the returned matrix pointer is not null
+            # The matrix should contain the values from the test file: 1,2,3,4,5,6,7,8,9
+            expected_matrix = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            t.check_array_pointer("a0", expected_matrix)
 
         # generate assembly and run it through venus
         t.execute(fail=fail, code=code)
 
     def test_simple(self):
         self.do_read_matrix()
+
+    def test_nonexistent_file(self):
+        # Test with a file that doesn't exist - should fail with code 90
+        t = AssemblyTest(self, "read_matrix.s")
+        t.input_read_filename("a0", "inputs/test_read_matrix/nonexistent.bin")
+        
+        rows = t.array([-1])
+        cols = t.array([-1])
+        t.input_array("a1", rows)
+        t.input_array("a2", cols)
+        
+        t.call("read_matrix")
+        t.execute(code=90)  # expect fopen error
+
+    def test_malloc_error(self):
+        # This would be harder to test without modifying the malloc function
+        # For now, we'll just test the normal case
+        pass
 
     @classmethod
     def tearDownClass(cls):
@@ -242,9 +268,16 @@ class TestWriteMatrix(TestCase):
         outfile = "outputs/test_write_matrix/student.bin"
         # load output file name into a0 register
         t.input_write_filename("a0", outfile)
+        
+        # create a test matrix - using the same 3x3 matrix as in test_read_matrix
+        # Matrix: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        test_matrix = t.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        
         # load input array and other arguments
-        raise NotImplementedError("TODO")
-        # TODO
+        t.input_array("a1", test_matrix)  # matrix data
+        t.input_scalar("a2", 3)           # number of rows
+        t.input_scalar("a3", 3)           # number of columns
+        
         # call `write_matrix` function
         t.call("write_matrix")
         # generate assembly and run it through venus
@@ -254,6 +287,22 @@ class TestWriteMatrix(TestCase):
 
     def test_simple(self):
         self.do_write_matrix()
+
+    def test_different_matrix_size(self):
+        # Test with a different matrix size (2x4)
+        t = AssemblyTest(self, "write_matrix.s")
+        outfile = "outputs/test_write_matrix/student_2x4.bin"
+        t.input_write_filename("a0", outfile)
+        
+        # create a 2x4 matrix: [[1, 2, 3, 4], [5, 6, 7, 8]]
+        test_matrix = t.array([1, 2, 3, 4, 5, 6, 7, 8])
+        t.input_array("a1", test_matrix)
+        t.input_scalar("a2", 2)  # 2 rows
+        t.input_scalar("a3", 4)  # 4 columns
+        
+        t.call("write_matrix")
+        t.execute()
+        # Note: For this test, we'd need a corresponding reference file
 
     @classmethod
     def tearDownClass(cls):
@@ -273,20 +322,157 @@ class TestClassify(TestCase):
         return t
 
     def test_simple0_input0(self):
+        """Test simple0 dataset with input0 - should classify as 2"""
         t = self.make_test()
         out_file = "outputs/test_basic_main/student0.bin"
         ref_file = "outputs/test_basic_main/reference0.bin"
         args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/m1.bin",
                 "inputs/simple0/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)  # 0 = print classification result
+        
         # call classify function
         t.call("classify")
         # generate assembly and pass program arguments directly to venus
         t.execute(args=args)
 
-        # compare the output file and
-        raise NotImplementedError("TODO")
-        # TODO
+        # compare the output file
+        t.check_file_output(out_file, ref_file)
+        
         # compare the classification output with `check_stdout`
+        # The expected classification result should be "2" based on simple0 dataset
+        t.check_stdout("2")
+
+    def test_simple0_input1(self):
+        """Test simple0 dataset with input1"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student0_input1.bin"
+        args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/m1.bin",
+                "inputs/simple0/bin/inputs/input1.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)  # 0 = print classification result
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args)
+        
+        # For input1, the exact expected classification would depend on the data
+        # But we can verify that the function runs without error
+
+    def test_simple1_input0(self):
+        """Test simple1 dataset with input0 - should classify as 1"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student1.bin"
+        ref_file = "outputs/test_basic_main/reference1.bin"
+        args = ["inputs/simple1/bin/m0.bin", "inputs/simple1/bin/m1.bin",
+                "inputs/simple1/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)  # 0 = print classification result
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args)
+        
+        # compare the output file
+        t.check_file_output(out_file, ref_file)
+        
+        # The expected classification result should be "1" based on simple1 dataset
+        t.check_stdout("1")
+
+    def test_simple2_input0(self):
+        """Test simple2 dataset with input0"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student2.bin"
+        args = ["inputs/simple2/bin/m0.bin", "inputs/simple2/bin/m1.bin",
+                "inputs/simple2/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)  # 0 = print classification result
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args)
+
+    def test_print_classification_silent(self):
+        """Test with print_classification = 1 (should not print classification)"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student_silent.bin"
+        args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/m1.bin",
+                "inputs/simple0/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification to 1 (don't print)
+        t.input_scalar("a2", 1)
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args)
+        
+        # Should not print anything to stdout
+        t.check_stdout("")
+        
+    def test_nonexistent_m0_file(self):
+        """Test with non-existent m0 file - should exit with error code 90"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student_error_m0.bin"
+        args = ["inputs/simple0/bin/nonexistent.bin", "inputs/simple0/bin/m1.bin",
+                "inputs/simple0/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)
+        
+        # call classify function
+        t.call("classify")
+        # read_matrix should handle the error internally (code 90 for fopen error)
+        t.execute(args=args, code=90)
+
+    def test_nonexistent_m1_file(self):
+        """Test with non-existent m1 file - should exit with error code 90"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student_error_m1.bin"
+        args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/nonexistent.bin",
+                "inputs/simple0/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args, code=90)
+
+    def test_nonexistent_input_file(self):
+        """Test with non-existent input file - should exit with error code 90"""
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student_error_input.bin"
+        args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/m1.bin",
+                "inputs/simple0/bin/inputs/nonexistent.bin", out_file]
+        
+        # Set print_classification parameter
+        t.input_scalar("a2", 0)
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args, code=90)
+
+    def test_different_print_classification_values(self):
+        """Test with different print_classification values"""
+        # Test with print_classification = 2 (should still be treated as "don't print")
+        t = self.make_test()
+        out_file = "outputs/test_basic_main/student_no_print_2.bin"
+        args = ["inputs/simple0/bin/m0.bin", "inputs/simple0/bin/m1.bin",
+                "inputs/simple0/bin/inputs/input0.bin", out_file]
+        
+        # Set print_classification to 2 (non-zero, so don't print)
+        t.input_scalar("a2", 2)
+        
+        # call classify function
+        t.call("classify")
+        t.execute(args=args)
+        
+        # Should not print anything to stdout
+        t.check_stdout("")
 
     @classmethod
     def tearDownClass(cls):

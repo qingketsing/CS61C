@@ -77,6 +77,13 @@ main:
 # Think: why might having a1 be useful?
 f:
     # YOUR CODE GOES HERE!
+    
+    addi t0, a0, 3          # let the index add 3, so -3 will be 0 and 3 will be 6
+    slli t0, t0, 2          # get the offset of the output
+    add a1, a1, t0          # get the address of the number which we want to output
+    lw t1, 0(a1)            # make the t1 load the number which we want ot output
+
+    mv a0, t1               # let a1 copy the t1 and then print 
 
     jr ra               # Always remember to jr ra after your function!
 

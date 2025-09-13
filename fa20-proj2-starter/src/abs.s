@@ -9,16 +9,22 @@
 #	a0 (int) the absolute value of the input
 # =================================================================
 abs:
-    # Prologue
-    andi t0, a0, -1
-
-    # branch if positive
-    bge a0, zero, done
-    # invert a if negative
-    sub a0, zero, a0
-
-    # Epilogue
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    # Check if input is negative (MSB = 1)
+    bltz a0, minus # if a0 < 0, jump to minus
+    
+    # If positive, restore stack and return
+    lw ra, 0(sp)
+    addi sp, sp, 4
     ret
 
-done: 
-    ret 
+minus:
+    # Negate the value: a0 = -a0
+    sub a0, x0, a0
+    
+    # Epilogue
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    ret

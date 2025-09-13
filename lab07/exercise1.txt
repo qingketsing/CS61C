@@ -1,24 +1,24 @@
 Scenario 1
-    1.
-    2.
-    3.
+    1. 步长, 块大小
+    2. 0
+    3. 步长, 调整至小于8 (4,2,1)
 
 Scenario 2
-    1.
-    2.
-    3.
+    1. 2
+    2. MHHH
+    3. 0.75
 
 Scenario 3
-    1.
-    2.
-    3.
-    4.
-    5.
+    1. 0.50, 0, 0.50
+    2. 32, 16
+    3. 16
+    4. 重复次数
+    5. =, =, +, =
 
 --- lines below are ignored by the AG ---
 
-Checkoff Question 1:
-Checkoff Question 2:
-Checkoff Question 3:
-Checkoff Question 4:
-Checkoff Question 5:
+Checkoff Question 1: 因为在第一轮访问后，所有需要的数据都已加载到缓存中，后续的3轮重复访问都会命中缓存。
+Checkoff Question 2: 可以修改步长为4或块大小增加，这样能减少冲突未命中。另一个选择是减少数组大小。
+Checkoff Question 3: 因为每个块可以存储多个连续的数据元素，当我们访问一个元素时，相邻的元素也被加载到缓存中，所以模式是未命中后跟着几个命中。
+Checkoff Question 4: 因为整个数组都能放入缓存中，第一遍访问建立了缓存内容后，后续访问都能命中。
+Checkoff Question 5: 应该按块处理数组，对每个小块应用所有重复操作，然后再移动到下一个块，这样保持了时间局部性。

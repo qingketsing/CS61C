@@ -82,9 +82,10 @@ int main( int argc, char **argv ) {
     struct timeval start, end;
 
     /* fill matrices with random numbers */
-    for( i = 0; i < nmax*nmax; i++ ) A[i] = drand48()*2-1;
-    for( i = 0; i < nmax*nmax; i++ ) B[i] = drand48()*2-1;
-    for( i = 0; i < nmax*nmax; i++ ) C[i] = drand48()*2-1;
+    srand( time( NULL ) );
+    for( i = 0; i < nmax*nmax; i++ ) A[i] = (float)rand()/RAND_MAX*2-1;
+    for( i = 0; i < nmax*nmax; i++ ) B[i] = (float)rand()/RAND_MAX*2-1;
+    for( i = 0; i < nmax*nmax; i++ ) C[i] = (float)rand()/RAND_MAX*2-1;
 
     for( i = 0; i < 6; i++) {
         /* multiply matrices and measure the time */
